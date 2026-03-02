@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0A0A0A"/>
+  <!-- Barbell plates left -->
+  <rect x="40" y="196" width="36" height="120" rx="10" fill="#22D3EE"/>
+  <rect x="84" y="216" width="20" height="80" rx="6" fill="#A78BFA"/>
+  <!-- Bar -->
+  <rect x="104" y="242" width="304" height="28" rx="8" fill="#22D3EE"/>
+  <!-- Barbell plates right -->
+  <rect x="408" y="216" width="20" height="80" rx="6" fill="#A78BFA"/>
+  <rect x="436" y="196" width="36" height="120" rx="10" fill="#22D3EE"/>
+  <!-- Letter F -->
+  <text x="185" y="300" font-family="Arial, sans-serif" font-weight="800" font-size="96" fill="#ffffff" opacity="0.05">FT</text>
+</svg>
