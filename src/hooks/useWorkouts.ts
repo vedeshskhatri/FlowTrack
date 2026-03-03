@@ -29,6 +29,7 @@ export function useWorkouts(dateRange?: { from: string; to: string }) {
       .gte('date', from)
       .lte('date', to)
       .order('date', { ascending: false })
+      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: true })
 
     if (error) setError(error.message)

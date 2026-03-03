@@ -21,6 +21,7 @@ create table if not exists public.workouts (
   status        text not null default 'planned'
                   check (status in ('planned','in-progress','completed','skipped')),
   session_id    uuid,
+  sort_order    int  not null default 0,   -- preserves CSV upload row order
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
@@ -29,6 +30,9 @@ create table if not exists public.workouts (
 create trigger handle_updated_at_workouts
   before update on public.workouts
   for each row execute procedure moddatetime(updated_at);
+
+-- Migration: add sort_order column if upgrading from an earlier schema version
+alter table public.workouts add column if not exists sort_order int not null default 0;
 
 -- Row-level security
 alter table public.workouts enable row level security;

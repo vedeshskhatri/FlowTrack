@@ -1,11 +1,30 @@
 import Papa from 'papaparse'
 import type { ParsedExercise } from '@/types'
 
+// Maps common day aliases to standard 3-letter names
+const DAY_ALIASES: Record<string, string> = {
+  sun: 'Sun', sunday: 'Sun',
+  mon: 'Mon', monday: 'Mon',
+  tue: 'Tue', tues: 'Tue', tuesday: 'Tue',
+  wed: 'Wed', wednesday: 'Wed',
+  thu: 'Thu', thur: 'Thu', thurs: 'Thu', thursday: 'Thu',
+  fri: 'Fri', friday: 'Fri',
+  sat: 'Sat', saturday: 'Sat',
+}
+
 /**
- * Parse a CSV file in the FlowTrack format:
- * Exercise,Sets,Reps,Weight,Notes
+ * Parse a CSV file in FlowTrack single-day format:
+ *   Exercise,Sets,Reps,Weight,Notes
  *
- * Returns a list of ParsedExercise objects or throws if the format is invalid.
+ * OR multi-day format (one file = whole week):
+ *   Day,Exercise,Sets,Reps,Weight,Notes
+ *   Mon,Bench Press,4,8,80,focus on full ROM
+ *   Mon,Squat,4,6,100,
+ *   Wed,Deadlift,3,5,120,
+ *   Sat,Pull Up,4,8,0,bodyweight
+ *
+ * Returns exercises in CSV row order (sort_order preserved).
+ * When a Day column is present, each exercise has a `day` field (e.g. 'Mon').
  */
 export function parseCsvFile(file: File): Promise<ParsedExercise[]> {
   return new Promise((resolve, reject) => {
@@ -20,13 +39,17 @@ export function parseCsvFile(file: File): Promise<ParsedExercise[]> {
             const name = (r['exercise'] || r['exercise_name'] || '').trim()
             if (!name) throw new Error(`Row ${index + 1}: Exercise name is required`)
 
-            const sets = parseInt(r['sets'] || '0', 10)
-            const reps = parseInt(r['reps'] || '0', 10)
+            const sets   = parseInt(r['sets']   || '0', 10)
+            const reps   = parseInt(r['reps']   || '0', 10)
             const weight = parseFloat(r['weight'] || r['weight_kg'] || '0')
 
-            if (isNaN(sets) || sets <= 0) throw new Error(`Row ${index + 1}: Invalid sets for "${name}"`)
-            if (isNaN(reps) || reps <= 0) throw new Error(`Row ${index + 1}: Invalid reps for "${name}"`)
-            if (isNaN(weight) || weight < 0) throw new Error(`Row ${index + 1}: Invalid weight for "${name}"`)
+            if (isNaN(sets)   || sets   <= 0) throw new Error(`Row ${index + 1}: Invalid sets for "${name}"`)
+            if (isNaN(reps)   || reps   <= 0) throw new Error(`Row ${index + 1}: Invalid reps for "${name}"`)
+            if (isNaN(weight) || weight <  0) throw new Error(`Row ${index + 1}: Invalid weight for "${name}"`)
+
+            // Normalise day name if present
+            const rawDay = (r['day'] || '').trim().toLowerCase()
+            const day    = rawDay ? (DAY_ALIASES[rawDay] ?? rawDay) : undefined
 
             return {
               exercise_name: name,
@@ -34,6 +57,8 @@ export function parseCsvFile(file: File): Promise<ParsedExercise[]> {
               reps,
               weight_kg: weight,
               notes: (r['notes'] || '').trim(),
+              sort_order: index,
+              day,
             } satisfies ParsedExercise
           })
 
@@ -75,7 +100,7 @@ export function workoutsToCsv(
 }
 
 /**
- * Sample CSV content for the onboarding flow.
+ * Sample CSV — single-day format (backward-compatible).
  */
 export const SAMPLE_CSV = `Exercise,Sets,Reps,Weight,Notes
 Bench Press,4,8,80,focus on full ROM
@@ -87,3 +112,20 @@ Barbell Row,4,8,70,
 Leg Press,3,12,150,
 Cable Row,3,12,60,squeeze at top
 `
+
+/**
+ * Sample CSV — multi-day / full-week format.
+ * Upload once and it auto-splits by day of the week.
+ */
+export const SAMPLE_WEEK_CSV = `Day,Exercise,Sets,Reps,Weight,Notes
+Mon,Bench Press,4,8,80,focus on full ROM
+Mon,Overhead Press,3,10,50,slow eccentric
+Mon,Cable Row,3,12,60,squeeze at top
+Wed,Squat,4,6,100,keep chest up
+Wed,Leg Press,3,12,150,
+Wed,Hanging Leg Raise,3,15,0,
+Fri,Deadlift,3,5,120,
+Fri,Pull Up,4,8,0,bodyweight
+Fri,Barbell Row,4,8,70,
+`
+

@@ -6,6 +6,7 @@ import { StreakCalendar } from '@/components/dashboard/StreakCalendar'
 import { VolumeChart } from '@/components/dashboard/VolumeChart'
 import { QuickActions } from '@/components/dashboard/QuickActions'
 import { RestCard } from '@/components/dashboard/RestCard'
+import { MotivationCard } from '@/components/dashboard/MotivationCard'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -21,6 +22,9 @@ export default function DashboardPage() {
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Hero section */}
         <HeroCard workouts={workouts} loading={loading} userName={user?.email} />
+
+        {/* Daily motivation */}
+        <MotivationCard />
 
         {/* Recovery status */}
         <RestCard workouts={workouts} />

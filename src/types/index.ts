@@ -18,6 +18,7 @@ export interface Workout {
   end_time: string | null    // ISO timestamp
   status: WorkoutStatus
   session_id: string | null  // Groups exercises in same session
+  sort_order: number         // Preserves CSV upload row order
   created_at: string
   updated_at: string
 }
@@ -66,6 +67,8 @@ export interface ParsedExercise {
   reps: number
   weight_kg: number
   notes: string
+  sort_order: number         // preserves CSV row order
+  day?: string              // e.g. 'Mon', 'Tue' — from multi-day CSV
   suggested_weight?: number  // from progressive overload engine
   suggestion_reason?: string
 }
