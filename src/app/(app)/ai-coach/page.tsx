@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Loader2, MessageSquare, Trash2, Sparkles, Bot, User } from 'lucide-react'
+import { Send, Loader2, MessageSquare, Trash2, Sparkles, Bot, User, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -29,6 +29,7 @@ export default function AiCoachPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput]       = useState('')
   const [loading, setLoading]   = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [userKey, setUserKey]   = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -98,6 +99,57 @@ export default function AiCoachPage() {
     }
   }
 
+  async function generateWorkoutPlan() {
+    setGenerating(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const [{ data: prefs }, { data: recent }] = await Promise.all([
+        supabase
+          .from('user_preferences')
+          .select('goal, experience_level, age, gender, body_weight_kg')
+          .eq('user_id', user.id)
+          .single(),
+        supabase
+          .from('workouts')
+          .select('exercise_name, sets, reps, weight_kg, date')
+          .eq('user_id', user.id)
+          .eq('status', 'completed')
+          .order('date', { ascending: false })
+          .limit(20),
+      ])
+
+      const goal       = prefs?.goal ?? 'general fitness'
+      const experience = prefs?.experience_level ?? 'intermediate'
+      const age        = prefs?.age ? `age ${prefs.age}` : ''
+      const gender     = prefs?.gender ? `(${prefs.gender})` : ''
+      const bw         = prefs?.body_weight_kg ? `bodyweight ${prefs.body_weight_kg}kg` : ''
+
+      const exerciseSummary = recent
+        ? [...new Set(recent.map(r => r.exercise_name))].slice(0, 8).join(', ')
+        : 'not available'
+
+      const prompt = `Generate a personalised full-week workout programme for me. Here is my profile:
+- Goal: ${goal}
+- Experience level: ${experience}
+- Profile: ${[age, gender, bw].filter(Boolean).join(', ') || 'not set'}
+- Recent exercises I've been doing: ${exerciseSummary}
+
+Please provide:
+1. A 5-day training split (Mon–Fri) with rest on weekends
+2. For each day: 4–6 exercises with sets × reps and target weight (as % of estimated 1RM or RPE)
+3. A brief rationale for the structure based on my goal
+4. One weekly progression tip
+
+Format each day clearly with day name and exercise list.`
+
+      await sendMessage(prompt)
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] lg:h-screen">
       {/* Header */}
@@ -141,6 +193,20 @@ export default function AiCoachPage() {
                   Ask anything about training, form, programming, nutrition, or recovery.
                   I pull your workout history to give personalised advice.
                 </p>
+              </div>
+
+              {/* Generate workout plan */}
+              <div className="flex justify-center">
+                <button
+                  onClick={generateWorkoutPlan}
+                  disabled={generating || loading}
+                  className="flex items-center gap-2.5 bg-gradient-to-r from-[#C9A84C] to-[#E8C870] text-[#0A1628] px-6 py-3 text-[11px] tracking-[0.18em] uppercase font-bold hover:opacity-90 transition-all disabled:opacity-50 rounded-none"
+                >
+                  {generating
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    : <Wand2 className="w-3.5 h-3.5" />}
+                  {generating ? 'Building your programme…' : 'Generate Week Programme'}
+                </button>
               </div>
 
               {/* Example prompts */}

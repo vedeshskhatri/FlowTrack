@@ -88,6 +88,15 @@ export interface WeeklyVolume {
   label: string
 }
 
+export interface WeightLog {
+  id: string
+  user_id: string
+  date: string
+  weight_kg: number
+  notes: string | null
+  created_at: string
+}
+
 export interface NavItem {
   label: string
   href: string

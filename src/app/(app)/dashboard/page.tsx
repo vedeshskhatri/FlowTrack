@@ -8,6 +8,8 @@ import { VolumeChart } from '@/components/dashboard/VolumeChart'
 import { QuickActions } from '@/components/dashboard/QuickActions'
 import { RestCard } from '@/components/dashboard/RestCard'
 import { MotivationCard } from '@/components/dashboard/MotivationCard'
+import { OverloadCard } from '@/components/dashboard/OverloadCard'
+import { PRsCard } from '@/components/dashboard/PRsCard'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useAuth } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
@@ -15,8 +17,9 @@ import type { UserPreferences } from '@/types'
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  // 90 days for overload analysis + PRs
   const { workouts, loading } = useWorkouts({
-    from: (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10) })(),
+    from: (() => { const d = new Date(); d.setDate(d.getDate() - 90); return d.toISOString().slice(0, 10) })(),
     to: new Date().toISOString().slice(0, 10),
   })
   const [profile, setProfile] = useState<Partial<UserPreferences> | null>(null)
@@ -44,6 +47,12 @@ export default function DashboardPage() {
         {/* Recovery status */}
         <RestCard workouts={workouts} profile={profile} />
 
+        {/* Progressive overload suggestions */}
+        <OverloadCard workouts={workouts} />
+
+        {/* Personal Records */}
+        <PRsCard workouts={workouts} />
+
         {/* Stats grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <StreakCalendar workouts={workouts} />
@@ -56,3 +65,4 @@ export default function DashboardPage() {
     </TooltipProvider>
   )
 }
+

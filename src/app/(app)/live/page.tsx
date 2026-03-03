@@ -16,7 +16,16 @@ import { createClient } from '@/lib/supabase/client'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useTimer } from '@/hooks/useTimer'
 import { formatDuration, today, generateSessionId } from '@/lib/utils'
-import type { Workout, LiveExercise, LiveSet } from '@/types'
+import type { Workout, LiveExercise, LiveSet, GoalType } from '@/types'
+
+const REST_DURATIONS: Record<GoalType | 'default', number> = {
+  strength:    180,
+  hypertrophy:  90,
+  endurance:    45,
+  'weight-loss': 60,
+  general:       90,
+  default:       90,
+}
 
 // ─── Build a live session from today's planned workouts ───────────────────────
 function buildLiveSession(workouts: Workout[]): LiveExercise[] {
@@ -57,8 +66,51 @@ export default function LivePage() {
   const [finished, setFinished] = useState(false)
   const [voiceActive, setVoiceActive] = useState(false)
   const [sessionId] = useState(() => generateSessionId())
+  const [isResting, setIsResting] = useState(false)
+  const [restSecondsLeft, setRestSecondsLeft] = useState(0)
+  const [defaultRestDuration, setDefaultRestDuration] = useState(90)
+  const restIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+
+  // Fetch user goal to set rest duration
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('user_preferences').select('goal').eq('user_id', user.id).single()
+        .then(({ data }) => {
+          if (data?.goal) setDefaultRestDuration(REST_DURATIONS[data.goal as GoalType] ?? 90)
+        })
+    })
+  }, [])
+
+  // Rest countdown
+  useEffect(() => {
+    if (!isResting) return
+    restIntervalRef.current = setInterval(() => {
+      setRestSecondsLeft(prev => {
+        if (prev <= 1) {
+          if (restIntervalRef.current) clearInterval(restIntervalRef.current)
+          setIsResting(false)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => { if (restIntervalRef.current) clearInterval(restIntervalRef.current) }
+  }, [isResting])
+
+  function startRest(duration = defaultRestDuration) {
+    setRestSecondsLeft(duration)
+    setIsResting(true)
+  }
+
+  function skipRest() {
+    if (restIntervalRef.current) clearInterval(restIntervalRef.current)
+    setIsResting(false)
+    setRestSecondsLeft(0)
+  }
 
   // Build session when workouts load
   useEffect(() => {
@@ -100,6 +152,7 @@ export default function LivePage() {
   function completeSet() {
     if (!activeSet) return
     setTimer.pause()
+    startRest()
 
     const reps = activeSet.actual_reps ?? activeSet.target_reps
 
@@ -384,8 +437,43 @@ export default function LivePage() {
               </div>
             </div>
 
+            {/* Rest timer countdown */}
+            {isResting && (
+              <div className="border border-[#C9A84C]/30 bg-[#C9A84C]/5 px-4 py-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Timer className="w-4 h-4 text-[#C9A84C]" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C9A84C]">Rest Period</span>
+                  </div>
+                  <button
+                    onClick={skipRest}
+                    className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors border border-border px-2 py-1"
+                  >
+                    Skip
+                  </button>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span
+                    className="text-3xl font-bold text-[#C9A84C]"
+                    style={{ fontFamily: 'var(--font-display, sans-serif)' }}
+                  >
+                    {formatDuration(restSecondsLeft)}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground mb-1 font-light">
+                    of {formatDuration(defaultRestDuration)} recommended
+                  </span>
+                </div>
+                <div className="h-0.5 bg-border overflow-hidden">
+                  <div
+                    className="h-full bg-[#C9A84C] transition-all duration-1000"
+                    style={{ width: `${(restSecondsLeft / defaultRestDuration) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Set timer */}
-            {activeSet?.status === 'active' && (
+            {!isResting && activeSet?.status === 'active' && (
               <div className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2.5">
                 <Timer className="w-4 h-4 text-primary" />
                 <span className="font-mono text-primary font-bold">{formatDuration(setTimer.seconds)}</span>

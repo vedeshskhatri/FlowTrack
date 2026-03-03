@@ -15,6 +15,28 @@ interface HeroCardProps {
 
 const GREETINGS = ['Ready to ascend,', 'Stay the course,', 'Summit awaits,', 'Keep climbing,']
 
+/** Derive average session duration in minutes from timed workouts */
+function avgSessionMin(workouts: Workout[]): number | null {
+  // Group completed workouts by date+session_id
+  const sessions: Record<string, { min: number; max: number }> = {}
+  for (const w of workouts) {
+    if (w.status !== 'completed' || !w.start_time || !w.end_time) continue
+    const key = w.session_id ?? w.date
+    const s = new Date(w.start_time).getTime()
+    const e = new Date(w.end_time).getTime()
+    if (!sessions[key]) sessions[key] = { min: s, max: e }
+    else {
+      sessions[key].min = Math.min(sessions[key].min, s)
+      sessions[key].max = Math.max(sessions[key].max, e)
+    }
+  }
+  const durations = Object.values(sessions)
+    .map(s => (s.max - s.min) / 60000)
+    .filter(d => d > 0 && d < 300) // sanity: 0–300 min
+  if (!durations.length) return null
+  return Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+}
+
 export function HeroCard({ workouts, loading, userName }: HeroCardProps) {
   const hour     = new Date().getHours()
   const period   = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening'
@@ -23,6 +45,7 @@ export function HeroCard({ workouts, loading, userName }: HeroCardProps) {
   const todayWorkouts = workouts.filter(w => w.date === today())
   const nextWorkout   = workouts.find(w => w.date >= today() && w.status === 'planned')
   const inProgress    = workouts.find(w => w.status === 'in-progress')
+  const avgMin        = avgSessionMin(workouts)
 
   if (loading) {
     return <Skeleton className="h-48 w-full" style={{ borderRadius: 0 }} />
@@ -125,6 +148,25 @@ export function HeroCard({ workouts, loading, userName }: HeroCardProps) {
               Upload
               <ArrowRight className="w-3 h-3" />
             </Link>
+          </div>
+        )}
+
+        {/* Mini stats row */}
+        {avgMin !== null && (
+          <div className="flex items-center gap-4 mt-5 pt-4 border-t border-white/10">
+            <div>
+              <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-semibold">Avg Session</p>
+              <p className="text-sm font-bold text-white" style={{ fontFamily: 'var(--font-display, sans-serif)' }}>
+                {avgMin}<span className="text-[10px] font-normal text-white/40 ml-0.5">min</span>
+              </p>
+            </div>
+            <div className="w-px h-7 bg-white/10" />
+            <div>
+              <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-semibold">Sessions</p>
+              <p className="text-sm font-bold text-white" style={{ fontFamily: 'var(--font-display, sans-serif)' }}>
+                {new Set(workouts.filter(w => w.status === 'completed').map(w => w.date)).size}
+              </p>
+            </div>
           </div>
         )}
       </div>

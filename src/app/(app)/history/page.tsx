@@ -2,9 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Download, Filter, Calendar, Dumbbell, TrendingUp,
-  FileSpreadsheet, ChevronDown, CheckCircle2, Clock, SkipForward,
+import { Download, Filter, Calendar, Dumbbell, TrendingUp,
+  FileSpreadsheet, ChevronDown, CheckCircle2, Clock, SkipForward, Share2,
 } from 'lucide-react'
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis,
@@ -17,6 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useWorkouts } from '@/hooks/useWorkouts'
+import { BodyWeightWidget } from '@/components/dashboard/BodyWeightWidget'
 import { workoutsToCsv } from '@/lib/csv-parser'
 import { estimate1RM, formatVolume } from '@/lib/utils'
 import type { Workout, WorkoutStatus } from '@/types'
@@ -121,6 +121,108 @@ export default function HistoryPage() {
     toast.success('PDF exported!')
   }
 
+  /* ── Share stats as PNG ── */
+  async function shareStats() {
+    const canvas = document.createElement('canvas')
+    const W = 600, H = 300
+    canvas.width = W * 2; canvas.height = H * 2  // retina
+    const ctx = canvas.getContext('2d')!
+    ctx.scale(2, 2)
+
+    // Background
+    ctx.fillStyle = '#0A1628'
+    ctx.fillRect(0, 0, W, H)
+
+    // Gold accent top bar
+    const grad = ctx.createLinearGradient(0, 0, W, 0)
+    grad.addColorStop(0, '#C9A84C')
+    grad.addColorStop(0.6, '#E8C870')
+    grad.addColorStop(1, 'rgba(201,168,76,0.3)')
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, W, 2)
+
+    // Mountain silhouette
+    ctx.fillStyle = 'rgba(255,255,255,0.04)'
+    ctx.beginPath()
+    ctx.moveTo(0, H)
+    ctx.lineTo(120, H * 0.4)
+    ctx.lineTo(220, H * 0.65)
+    ctx.lineTo(320, H * 0.15)
+    ctx.lineTo(420, H * 0.55)
+    ctx.lineTo(540, H * 0.3)
+    ctx.lineTo(W, H * 0.45)
+    ctx.lineTo(W, H)
+    ctx.closePath()
+    ctx.fill()
+
+    // Branding
+    ctx.fillStyle = '#C9A84C'
+    ctx.font = 'bold 10px sans-serif'
+    ctx.letterSpacing = '4px'
+    ctx.fillText('FLOWTRACK', 30, 38)
+
+    // Period label
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'
+    ctx.font = '10px sans-serif'
+    ctx.fillText(`Last ${range} days · ${from} to ${to}`, 30, 56)
+
+    // Stats
+    const statItems = [
+      { label: 'VOLUME', value: `${Math.round(stats.totalVol / 1000)}K kg` },
+      { label: 'SESSIONS', value: String(stats.sessions) },
+      { label: 'EXERCISES', value: String(stats.exercises) },
+    ]
+    statItems.forEach(({ label, value }, i) => {
+      const x = 30 + i * 185
+      ctx.fillStyle = '#F5F3EF'
+      ctx.font = `bold 36px sans-serif`
+      ctx.fillText(value, x, 140)
+      ctx.fillStyle = '#C9A84C'
+      ctx.font = 'bold 9px sans-serif'
+      ctx.fillText(label, x, 162)
+    })
+
+    // Divider
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(30, 175)
+    ctx.lineTo(W - 30, 175)
+    ctx.stroke()
+
+    // Footer text
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'
+    ctx.font = '10px sans-serif'
+    ctx.fillText('Track your ascent at FlowTrack', 30, 198)
+
+    // Logo mark (right)
+    ctx.fillStyle = 'rgba(201,168,76,0.15)'
+    ctx.beginPath()
+    ctx.arc(W - 45, H / 2, 30, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(201,168,76,0.5)'
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.fillStyle = '#C9A84C'
+    ctx.font = 'bold 14px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('FT', W - 45, H / 2 + 5)
+    ctx.textAlign = 'left'
+
+    const blob: Blob = await new Promise(res => canvas.toBlob(b => res(b!), 'image/png'))
+    const file = new File([blob], 'flowtrack-stats.png', { type: 'image/png' })
+
+    if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'FlowTrack Weekly Stats', text: `My last ${range}-day workout summary` })
+    } else {
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'flowtrack-stats.png'; a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Stats card saved!')
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
       {/* Header */}
@@ -159,6 +261,10 @@ export default function HistoryPage() {
           <Button variant="outline" size="sm" className="gap-1.5 h-9" onClick={exportPdf}>
             <Download className="w-3.5 h-3.5" />
             PDF
+          </Button>
+          <Button variant="outline" size="sm" className="gap-1.5 h-9" onClick={shareStats}>
+            <Share2 className="w-3.5 h-3.5" />
+            Share
           </Button>
         </div>
       </div>
@@ -222,6 +328,9 @@ export default function HistoryPage() {
           </ResponsiveContainer>
         </div>
       )}
+
+      {/* Body weight trend */}
+      <BodyWeightWidget />
 
       {/* Workout log */}
       <div>
