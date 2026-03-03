@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
+import { ExerciseAutocomplete } from '@/components/ui/ExerciseAutocomplete'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useTimer } from '@/hooks/useTimer'
@@ -70,6 +71,8 @@ export default function LivePage() {
   const [restSecondsLeft, setRestSecondsLeft] = useState(0)
   const [defaultRestDuration, setDefaultRestDuration] = useState(90)
   const restIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [newEx, setNewEx] = useState({ name: '', sets: 3, reps: 10, weight: 20 })
+  const [addingEx, setAddingEx] = useState(false)
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
 
@@ -141,6 +144,50 @@ export default function LivePage() {
     if (session.length > 0) {
       setSession(prev => updateExStatus(prev, 0, 'active'))
     }
+  }
+
+  async function addExerciseToSession() {
+    if (!newEx.name.trim()) return
+    const supabaseClient = createClient()
+    const { data: { user } } = await supabaseClient.auth.getUser()
+    const newId = crypto.randomUUID()
+    if (user) {
+      // persist as a planned workout so it shows in history
+      await supabaseClient.from('workouts').insert({
+        id: newId,
+        user_id: user.id,
+        date: today(),
+        exercise_name: newEx.name.trim(),
+        sets: newEx.sets,
+        reps: newEx.reps,
+        weight_kg: newEx.weight,
+        status: 'planned',
+        sort_order: session.length + 1,
+      })
+    }
+    const liveEx: LiveExercise = {
+      id: newId,
+      exercise_name: newEx.name.trim(),
+      target_sets: newEx.sets,
+      target_reps: newEx.reps,
+      target_weight_kg: newEx.weight,
+      notes: '',
+      status: 'pending',
+      sets: Array.from({ length: newEx.sets }, (_, i) => ({
+        id: `${newId}-${i}`,
+        set_number: i + 1,
+        target_reps: newEx.reps,
+        actual_reps: null,
+        weight_kg: newEx.weight,
+        started_at: null,
+        completed_at: null,
+        status: 'pending' as const,
+      })),
+    }
+    setSession(prev => [...prev, liveEx])
+    setNewEx({ name: '', sets: 3, reps: 10, weight: 20 })
+    setAddingEx(false)
+    toast.success(`${liveEx.exercise_name} added to session`)
   }
 
   function startSet() {
@@ -288,22 +335,6 @@ export default function LivePage() {
   const totalSets     = session.flatMap(ex => ex.sets).length
   const progress      = totalSets > 0 ? (completedSets / totalSets) * 100 : 0
 
-  // ── Empty state ──
-  if (!loading && workouts.filter(w => w.date === today() && w.status !== 'skipped').length === 0) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
-        <Dumbbell className="w-12 h-12 text-muted-foreground mx-auto" />
-        <h1 className="text-xl font-bold">No workout planned today</h1>
-        <p className="text-sm text-muted-foreground">
-          Upload a CSV on the Upload page or add exercises to today&apos;s plan.
-        </p>
-        <Button asChild className="bg-primary text-primary-foreground mt-2">
-          <a href="/upload">Upload CSV</a>
-        </Button>
-      </div>
-    )
-  }
-
   // ── Finished screen ──
   if (finished) {
     return (
@@ -349,7 +380,9 @@ export default function LivePage() {
         <div>
           <h1 className="text-2xl font-bold">Today&apos;s Session</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {session.length} exercises · {session.reduce((s, ex) => s + ex.sets.length, 0)} sets total
+            {session.length === 0
+              ? 'Add exercises below to start your session'
+              : `${session.length} exercises · ${session.reduce((s, ex) => s + ex.sets.length, 0)} sets total`}
           </p>
         </div>
 
@@ -367,9 +400,60 @@ export default function LivePage() {
           ))}
         </div>
 
+        {/* Add exercise inline form */}
+        <AnimatePresence>
+          {addingEx ? (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="border border-border bg-card rounded-xl p-4 space-y-3"
+            >
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Add Exercise</p>
+              <ExerciseAutocomplete
+                value={newEx.name}
+                onChange={name => setNewEx(f => ({ ...f, name }))}
+                placeholder="Search exercise…"
+              />
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { label: 'Sets',       key: 'sets',   step: 1,   min: 1,  max: 20  },
+                  { label: 'Reps',       key: 'reps',   step: 1,   min: 1,  max: 100 },
+                  { label: 'Weight (kg)',key: 'weight', step: 0.5, min: 0,  max: 999 },
+                ] as const).map(({ label, key, step, min, max }) => (
+                  <div key={key}>
+                    <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide">{label}</p>
+                    <Input
+                      type="number" step={step} min={min} max={max}
+                      value={newEx[key]}
+                      onChange={e => setNewEx(f => ({ ...f, [key]: parseFloat(e.target.value) || 0 }))}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={addExerciseToSession} disabled={!newEx.name.trim()} className="flex-1">
+                  Add to Session
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setAddingEx(false)}>Cancel</Button>
+              </div>
+            </motion.div>
+          ) : (
+            <button
+              onClick={() => setAddingEx(true)}
+              className="w-full flex items-center justify-center gap-2 border border-dashed border-border rounded-xl py-3 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Add exercise
+            </button>
+          )}
+        </AnimatePresence>
+
         <Button
           onClick={startSession}
-          className="w-full h-14 bg-primary text-primary-foreground text-base font-bold hover:bg-primary/90 glow-cyan gap-3"
+          disabled={session.length === 0}
+          className="w-full h-14 bg-primary text-primary-foreground text-base font-bold hover:bg-primary/90 glow-cyan gap-3 disabled:opacity-40"
         >
           <Play className="w-5 h-5" />
           Start Session

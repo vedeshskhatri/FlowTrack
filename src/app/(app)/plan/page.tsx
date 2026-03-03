@@ -4,12 +4,14 @@ import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, Plus, Trash2, RefreshCw,
-  CheckCircle2, SkipForward, Calendar, Copy, X, Dumbbell,
+  CheckCircle2, SkipForward, Calendar, Copy, X, Dumbbell, Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Input } from '@/components/ui/input'
+import { ExerciseAutocomplete } from '@/components/ui/ExerciseAutocomplete'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { formatDate, DAY_LABELS } from '@/lib/utils'
@@ -31,6 +33,9 @@ export default function PlanPage() {
   const [copyTargetDays, setCopyTargetDays] = useState<Set<string>>(new Set())
   const [copying, setCopying] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [addingDay, setAddingDay] = useState<string | null>(null)
+  const [addForm, setAddForm] = useState({ exercise_name: '', sets: 3, reps: 10, weight_kg: 20 })
+  const [addSaving, setAddSaving] = useState(false)
 
   const weekDays = useMemo(() => {
     const now = new Date()
@@ -76,6 +81,32 @@ export default function PlanPage() {
     if (error) toast.error('Failed to delete workout')
     else { toast.success('Workout removed'); refetch() }
     setDeleting(null)
+  }
+
+  async function addWorkout(day: string) {
+    if (!addForm.exercise_name.trim()) { toast.error('Enter an exercise name'); return }
+    setAddSaving(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setAddSaving(false); return }
+    const maxOrder = Math.max(0, ...(workoutsByDay[day] ?? []).map(w => w.sort_order))
+    const { error } = await supabase.from('workouts').insert({
+      user_id:       user.id,
+      date:          day,
+      exercise_name: addForm.exercise_name.trim(),
+      sets:          addForm.sets,
+      reps:          addForm.reps,
+      weight_kg:     addForm.weight_kg,
+      status:        'planned' as WorkoutStatus,
+      sort_order:    maxOrder + 1,
+    })
+    if (error) toast.error(error.message)
+    else {
+      toast.success(`${addForm.exercise_name} added!`)
+      setAddingDay(null)
+      setAddForm({ exercise_name: '', sets: 3, reps: 10, weight_kg: 20 })
+      refetch()
+    }
+    setAddSaving(false)
   }
 
   async function deleteAllOnDay(day: string) {
@@ -254,6 +285,15 @@ export default function PlanPage() {
 
                 {/* Day actions */}
                 <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => { setAddingDay(prev => prev === day ? null : day); setAddForm({ exercise_name: '', sets: 3, reps: 10, weight_kg: 20 }) }}
+                    title="Add exercise"
+                    className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all ${
+                      addingDay === day ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
                   {dayWorkouts.length > 0 && (
                     <>
                       <button
@@ -276,6 +316,72 @@ export default function PlanPage() {
                   )}
                 </div>
               </div>
+
+              {/* Inline add-exercise form */}
+              <AnimatePresence>
+                {addingDay === day && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden border-t border-border"
+                  >
+                    <div className="px-5 py-4 space-y-3">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Add Exercise</p>
+                      <ExerciseAutocomplete
+                        value={addForm.exercise_name}
+                        onChange={name => setAddForm(f => ({ ...f, exercise_name: name }))}
+                        placeholder="Exercise name…"
+                      />
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide">Sets</p>
+                          <Input
+                            type="number" min={1} max={20}
+                            value={addForm.sets}
+                            onChange={e => setAddForm(f => ({ ...f, sets: parseInt(e.target.value) || 1 }))}
+                            className="h-9 text-sm rounded-none border-border"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide">Reps</p>
+                          <Input
+                            type="number" min={1} max={100}
+                            value={addForm.reps}
+                            onChange={e => setAddForm(f => ({ ...f, reps: parseInt(e.target.value) || 1 }))}
+                            className="h-9 text-sm rounded-none border-border"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide">Weight (kg)</p>
+                          <Input
+                            type="number" min={0} step={0.5}
+                            value={addForm.weight_kg}
+                            onChange={e => setAddForm(f => ({ ...f, weight_kg: parseFloat(e.target.value) || 0 }))}
+                            className="h-9 text-sm rounded-none border-border"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => addWorkout(day)}
+                          disabled={addSaving || !addForm.exercise_name.trim()}
+                          className="flex items-center gap-1.5 bg-foreground text-background px-4 py-2 text-[10px] tracking-[0.15em] uppercase font-bold hover:opacity-80 transition-all disabled:opacity-40"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          {addSaving ? 'Saving…' : 'Add'}
+                        </button>
+                        <button
+                          onClick={() => setAddingDay(null)}
+                          className="px-4 py-2 text-[10px] tracking-[0.15em] uppercase font-bold text-muted-foreground hover:text-foreground border border-border transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Workout rows */}
               {dayWorkouts.length > 0 && (
