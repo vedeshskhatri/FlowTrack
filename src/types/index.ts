@@ -45,6 +45,9 @@ export interface AiChatHistory {
   created_at: string
 }
 
+export type Gender = 'male' | 'female' | 'other'
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced'
+
 export interface UserPreferences {
   id: string
   user_id: string
@@ -55,6 +58,12 @@ export interface UserPreferences {
   show_nutrition: boolean
   onboarding_completed: boolean
   theme: 'dark' | 'light' | 'system'
+  // Body profile — used to calibrate recovery windows
+  age: number | null
+  gender: Gender | null
+  height_cm: number | null
+  body_weight_kg: number | null
+  experience_level: ExperienceLevel | null
   created_at: string
   updated_at: string
 }

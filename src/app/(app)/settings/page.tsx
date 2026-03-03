@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
-import type { UserPreferences, CyclePhase, GoalType, Unit } from '@/types'
+import type { UserPreferences, CyclePhase, GoalType, Unit, Gender, ExperienceLevel } from '@/types'
 
 const DEFAULT_PREFS: Partial<UserPreferences> = {
   units: 'kg',
@@ -161,6 +161,97 @@ export default function SettingsPage() {
               checked={prefs.show_nutrition ?? false}
               onCheckedChange={v => update('show_nutrition', v)}
             />
+          </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      {/* Body Profile */}
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Body Profile</h2>
+        <p className="text-xs text-muted-foreground -mt-2">
+          Used to calibrate your personalised recovery window. All values are stored in metric (kg / cm) internally.
+        </p>
+        <div className="rounded-xl border border-border bg-card p-5 space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>Age</Label>
+              <Input
+                type="number"
+                min={10}
+                max={100}
+                placeholder="28"
+                value={prefs.age ?? ''}
+                onChange={e => update('age', e.target.value ? Number(e.target.value) : null as unknown as number)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Gender</Label>
+              <Select
+                value={prefs.gender ?? ''}
+                onValueChange={v => update('gender', v as Gender)}
+              >
+                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label>Height (cm)</Label>
+              <Input
+                type="number"
+                min={100}
+                max={250}
+                placeholder="175"
+                value={prefs.height_cm ?? ''}
+                onChange={e => update('height_cm', e.target.value ? Number(e.target.value) : null as unknown as number)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Body Weight ({prefs.units === 'lbs' ? 'lbs' : 'kg'})</Label>
+              <Input
+                type="number"
+                min={30}
+                max={300}
+                placeholder={prefs.units === 'lbs' ? '154' : '70'}
+                value={
+                  prefs.body_weight_kg
+                    ? prefs.units === 'lbs'
+                      ? Math.round(prefs.body_weight_kg * 2.205)
+                      : prefs.body_weight_kg
+                    : ''
+                }
+                onChange={e => {
+                  const v = e.target.value ? Number(e.target.value) : null
+                  update('body_weight_kg', v !== null
+                    ? (prefs.units === 'lbs' ? Math.round(v / 2.205 * 10) / 10 : v)
+                    : null as unknown as number
+                  )
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Training Experience</Label>
+            <Select
+              value={prefs.experience_level ?? ''}
+              onValueChange={v => update('experience_level', v as ExperienceLevel)}
+            >
+              <SelectTrigger className="w-full"><SelectValue placeholder="Select level" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="beginner">Beginner (&lt;1 year)</SelectItem>
+                <SelectItem value="intermediate">Intermediate (1–4 years)</SelectItem>
+                <SelectItem value="advanced">Advanced (4+ years)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </section>

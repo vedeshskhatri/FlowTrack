@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { HeroCard } from '@/components/dashboard/HeroCard'
 import { StreakCalendar } from '@/components/dashboard/StreakCalendar'
@@ -9,6 +10,8 @@ import { RestCard } from '@/components/dashboard/RestCard'
 import { MotivationCard } from '@/components/dashboard/MotivationCard'
 import { useWorkouts } from '@/hooks/useWorkouts'
 import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
+import type { UserPreferences } from '@/types'
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -16,6 +19,18 @@ export default function DashboardPage() {
     from: (() => { const d = new Date(); d.setDate(d.getDate() - 30); return d.toISOString().slice(0, 10) })(),
     to: new Date().toISOString().slice(0, 10),
   })
+  const [profile, setProfile] = useState<Partial<UserPreferences> | null>(null)
+
+  useEffect(() => {
+    if (!user) return
+    const supabase = createClient()
+    supabase
+      .from('user_preferences')
+      .select('age,gender,height_cm,body_weight_kg,experience_level,goal,cycle_phase,units')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => { if (data) setProfile(data) })
+  }, [user])
 
   return (
     <TooltipProvider>
@@ -27,7 +42,7 @@ export default function DashboardPage() {
         <MotivationCard />
 
         {/* Recovery status */}
-        <RestCard workouts={workouts} />
+        <RestCard workouts={workouts} profile={profile} />
 
         {/* Stats grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

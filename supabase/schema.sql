@@ -129,6 +129,13 @@ create table if not exists public.user_preferences (
   updated_at           timestamptz not null default now()
 );
 
+-- Body profile columns (migration-safe)
+alter table public.user_preferences add column if not exists age              int  check (age > 0 and age < 120);
+alter table public.user_preferences add column if not exists gender           text check (gender in ('male','female','other'));
+alter table public.user_preferences add column if not exists height_cm        numeric(5,1) check (height_cm > 0);
+alter table public.user_preferences add column if not exists body_weight_kg   numeric(5,1) check (body_weight_kg > 0);
+alter table public.user_preferences add column if not exists experience_level text check (experience_level in ('beginner','intermediate','advanced'));
+
 create trigger handle_updated_at_user_prefs
   before update on public.user_preferences
   for each row execute procedure moddatetime(updated_at);
