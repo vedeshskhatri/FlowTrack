@@ -54,8 +54,13 @@ create policy "Users can delete own workouts"
   using (auth.uid() = user_id);
 
 -- Indexes
-create index if not exists workouts_user_date on public.workouts(user_id, date);
-create index if not exists workouts_session    on public.workouts(session_id);
+-- Covers the most common query: fetch workouts for a user+date range, ordered by sort_order
+create index if not exists workouts_user_date_order on public.workouts(user_id, date, sort_order);
+create index if not exists workouts_session          on public.workouts(session_id);
+
+-- Migration: if you already ran the old schema, replace the old index with the new one
+drop index if exists public.workouts_user_date;
+create index if not exists workouts_user_date_order on public.workouts(user_id, date, sort_order);
 
 -- ─── Exercise History ─────────────────────────────────────────────────────────
 create table if not exists public.exercise_history (

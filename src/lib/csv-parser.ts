@@ -14,16 +14,18 @@ const DAY_ALIASES: Record<string, string> = {
 
 /**
  * Parse a CSV file in FlowTrack single-day format:
- *   Exercise,Sets,Reps,Weight,Notes
+ *   Order,Exercise,Sets,Reps,Weight,Notes
  *
  * OR multi-day format (one file = whole week):
- *   Day,Exercise,Sets,Reps,Weight,Notes
- *   Mon,Bench Press,4,8,80,focus on full ROM
- *   Mon,Squat,4,6,100,
- *   Wed,Deadlift,3,5,120,
- *   Sat,Pull Up,4,8,0,bodyweight
+ *   Order,Day,Exercise,Sets,Reps,Weight,Notes
+ *   1,Mon,Bench Press,4,8,80,focus on full ROM
+ *   2,Mon,Squat,4,6,100,
+ *   1,Wed,Deadlift,3,5,120,
+ *   1,Sat,Pull Up,4,8,0,bodyweight
  *
- * Returns exercises in CSV row order (sort_order preserved).
+ * The optional `Order` column (1-based) pins each exercise to a fixed position
+ * within its day so the workout list never re-shuffles after upload.
+ * When `Order` is omitted the CSV row index (1-based) is used as a fallback.
  * When a Day column is present, each exercise has a `day` field (e.g. 'Mon').
  */
 export function parseCsvFile(file: File): Promise<ParsedExercise[]> {
@@ -51,13 +53,17 @@ export function parseCsvFile(file: File): Promise<ParsedExercise[]> {
             const rawDay = (r['day'] || '').trim().toLowerCase()
             const day    = rawDay ? (DAY_ALIASES[rawDay] ?? rawDay) : undefined
 
+            // Use explicit Order column (1-based) if provided; fall back to row index + 1
+            const orderRaw  = (r['order'] || '').trim()
+            const sortOrder = orderRaw ? parseInt(orderRaw, 10) : index + 1
+
             return {
               exercise_name: name,
               sets,
               reps,
               weight_kg: weight,
               notes: (r['notes'] || '').trim(),
-              sort_order: index,
+              sort_order: sortOrder,
               day,
             } satisfies ParsedExercise
           })
@@ -74,6 +80,7 @@ export function parseCsvFile(file: File): Promise<ParsedExercise[]> {
 
 /**
  * Convert workouts to CSV string for export.
+ * Includes an Order column so re-importing the file preserves exercise order.
  */
 export function workoutsToCsv(
   workouts: Array<{
@@ -84,48 +91,64 @@ export function workoutsToCsv(
     weight_kg: number
     notes: string | null
     status: string
+    sort_order?: number
   }>,
 ): string {
-  const rows = workouts.map(w => ({
-    Date: w.date,
-    Exercise: w.exercise_name,
-    Sets: w.sets,
-    Reps: w.reps,
-    Weight: w.weight_kg,
-    Notes: w.notes || '',
-    Status: w.status,
-  }))
+  // Group by date so Order resets to 1 for each day (mirrors the upload format)
+  const byDate: Record<string, typeof workouts> = {}
+  for (const w of workouts) {
+    if (!byDate[w.date]) byDate[w.date] = []
+    byDate[w.date].push(w)
+  }
+
+  const rows = Object.values(byDate).flatMap(group =>
+    group
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map((w, i) => ({
+        Order:    w.sort_order ?? i + 1,
+        Date:     w.date,
+        Exercise: w.exercise_name,
+        Sets:     w.sets,
+        Reps:     w.reps,
+        Weight:   w.weight_kg,
+        Notes:    w.notes || '',
+        Status:   w.status,
+      }))
+  )
 
   return Papa.unparse(rows)
 }
 
 /**
- * Sample CSV — single-day format (backward-compatible).
+ * Sample CSV — single-day format.
+ * The Order column (1, 2, 3…) locks each exercise into its position
+ * so the list never re-shuffles after upload.
  */
-export const SAMPLE_CSV = `Exercise,Sets,Reps,Weight,Notes
-Bench Press,4,8,80,focus on full ROM
-Squat,4,6,100,keep chest up
-Deadlift,3,5,120,
-Pull Up,4,8,0,bodyweight
-Overhead Press,3,10,50,slow eccentric
-Barbell Row,4,8,70,
-Leg Press,3,12,150,
-Cable Row,3,12,60,squeeze at top
+export const SAMPLE_CSV = `Order,Exercise,Sets,Reps,Weight,Notes
+1,Bench Press,4,8,80,focus on full ROM
+2,Squat,4,6,100,keep chest up
+3,Deadlift,3,5,120,
+4,Pull Up,4,8,0,bodyweight
+5,Overhead Press,3,10,50,slow eccentric
+6,Barbell Row,4,8,70,
+7,Leg Press,3,12,150,
+8,Cable Row,3,12,60,squeeze at top
 `
 
 /**
  * Sample CSV — multi-day / full-week format.
  * Upload once and it auto-splits by day of the week.
+ * Order resets to 1 for each day so each day's list stays sorted correctly.
  */
-export const SAMPLE_WEEK_CSV = `Day,Exercise,Sets,Reps,Weight,Notes
-Mon,Bench Press,4,8,80,focus on full ROM
-Mon,Overhead Press,3,10,50,slow eccentric
-Mon,Cable Row,3,12,60,squeeze at top
-Wed,Squat,4,6,100,keep chest up
-Wed,Leg Press,3,12,150,
-Wed,Hanging Leg Raise,3,15,0,
-Fri,Deadlift,3,5,120,
-Fri,Pull Up,4,8,0,bodyweight
-Fri,Barbell Row,4,8,70,
+export const SAMPLE_WEEK_CSV = `Order,Day,Exercise,Sets,Reps,Weight,Notes
+1,Mon,Bench Press,4,8,80,focus on full ROM
+2,Mon,Overhead Press,3,10,50,slow eccentric
+3,Mon,Cable Row,3,12,60,squeeze at top
+1,Wed,Squat,4,6,100,keep chest up
+2,Wed,Leg Press,3,12,150,
+3,Wed,Hanging Leg Raise,3,15,0,
+1,Fri,Deadlift,3,5,120,
+2,Fri,Pull Up,4,8,0,bodyweight
+3,Fri,Barbell Row,4,8,70,
 `
 

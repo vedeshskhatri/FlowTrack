@@ -103,6 +103,7 @@ export default function PlanPage() {
         weight_kg: w.weight_kg,
         notes: w.notes,
         status: 'planned' as WorkoutStatus,
+        sort_order: w.sort_order,
       }))
     )
 

@@ -234,8 +234,9 @@ export default function UploadPage() {
         {/* Format hint */}
         <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground space-y-1">
           <p className="font-semibold text-foreground">Two CSV formats supported</p>
-          <p><span className="font-mono text-primary">Exercise,Sets,Reps,Weight,Notes</span> — single day, pick dates below</p>
-          <p><span className="font-mono text-primary">Day,Exercise,Sets,Reps,Weight,Notes</span> — full week (Mon/Tue…), auto-maps to upcoming dates</p>
+          <p><span className="font-mono text-primary">Order,Exercise,Sets,Reps,Weight,Notes</span> — single day, pick dates below</p>
+          <p><span className="font-mono text-primary">Order,Day,Exercise,Sets,Reps,Weight,Notes</span> — full week (Mon/Tue…), auto-maps to upcoming dates</p>
+          <p className="text-muted-foreground/70">The <span className="font-mono">Order</span> column (1, 2, 3…) locks exercise positions so they never re-shuffle. It&apos;s optional — row order is used as fallback.</p>
         </div>
 
         {/* Drop zone */}

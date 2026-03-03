@@ -91,14 +91,28 @@ Without a key, the app falls back to pattern-matched demo responses.
 
 ## CSV Import Format
 
+Two formats are supported. Download sample files directly from the Upload page.
+
+**Single-day** (pick a date after uploading):
 ```csv
-Exercise,Sets,Reps,Weight,Notes
-Squat,3,5,100,felt strong
-Bench Press,4,8,80,
-Deadlift,1,5,140,
+Order,Exercise,Sets,Reps,Weight,Notes
+1,Squat,3,5,100,felt strong
+2,Bench Press,4,8,80,
+3,Deadlift,1,5,140,
 ```
 
-After uploading, FlowTrack parses exercises, looks up previous performance, and applies the progressive overload engine to suggest weights.
+**Full-week** (auto-maps each day to the next upcoming occurrence):
+```csv
+Order,Day,Exercise,Sets,Reps,Weight,Notes
+1,Mon,Bench Press,4,8,80,
+2,Mon,Overhead Press,3,10,50,
+1,Wed,Squat,4,6,100,
+1,Fri,Deadlift,3,5,120,
+```
+
+The `Order` column (1, 2, 3…) locks each exercise into position so the list never re-shuffles. It is optional — row order is used as a fallback. Exported history CSVs include `Order` automatically so they can be re-imported cleanly.
+
+After uploading, FlowTrack applies the progressive overload engine to suggest weights based on your history.
 
 ---
 
