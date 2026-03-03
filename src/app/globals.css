@@ -4,10 +4,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ─── FlowTrack Custom Animations & Utilities ────────────────────────────── */
+/* ─── FlowTrack · Alpine Luxury Design System ───────────────────────────── */
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -22,9 +22,9 @@
 }
 
 @keyframes pulse-ring {
-  0%   { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.4); }
-  70%  { box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4); }
+  70%  { box-shadow: 0 0 0 10px rgba(201, 168, 76, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0); }
 }
 
 @keyframes scanning-bar {
@@ -32,70 +32,159 @@
   100% { transform: translateY(2000%); }
 }
 
-.animate-slide-up { animation: slide-up 0.3s ease both; }
-.animate-fade-in  { animation: fade-in 0.2s ease both; }
-.animate-pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+@keyframes gold-shimmer {
+  0%   { background-position: -300% 0; }
+  100% { background-position:  300% 0; }
+}
 
+.animate-slide-up   { animation: slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in    { animation: fade-in 0.3s ease both; }
+.animate-pulse-ring { animation: pulse-ring 1.8s ease-out infinite; }
+
+/* ── Alpine Shimmer (gold-tinted) ── */
 .shimmer {
   background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
+/* ── Gold Gradient Text ── */
 .gradient-text {
-  background: linear-gradient(135deg, #06B6D4 0%, #A78BFA 100%);
+  background: linear-gradient(135deg, #C9A84C 0%, #E8C870 50%, #A8893C 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.glow-cyan  { box-shadow: 0 0 24px rgba(6, 182, 212, 0.18); }
-.glow-violet { box-shadow: 0 0 24px rgba(167, 139, 250, 0.18); }
+/* ── Navy Text (brand primary) ── */
+.navy-text { color: #0A1628; }
+.dark .navy-text { color: #F5F3EF; }
 
-/* Namma Yatri-style card: clean surface, subtle shadow, large touch area */
+/* ── Glow effects ── */
+.glow-gold  { box-shadow: 0 0 32px rgba(201, 168, 76, 0.22); }
+.glow-navy  { box-shadow: 0 0 32px rgba(10, 22, 40, 0.18); }
+
+/* ── Alpine Card: crisp edges, premium shadow ── */
 .ny-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 1.25rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  transition: box-shadow 0.2s ease;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 8px rgba(10,22,40,0.05), 0 4px 24px rgba(10,22,40,0.04);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 .ny-card:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 24px rgba(10,22,40,0.1), 0 1px 4px rgba(10,22,40,0.06);
+  transform: translateY(-1px);
 }
 
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .card-hover:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.07);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(10,22,40,0.1);
 }
 
+/* ── Expedition Glass ── */
 .glass {
-  background: rgba(255,255,255,0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(245, 243, 239, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(201, 168, 76, 0.12);
+}
+.dark .glass {
+  background: rgba(10, 22, 40, 0.5);
+  border: 1px solid rgba(201, 168, 76, 0.1);
 }
 
+/* ── Alpine Diagonal — clip-path section divider ── */
+.diagonal-cut {
+  clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+}
+.diagonal-cut-reverse {
+  clip-path: polygon(0 0, 100% 6%, 100% 100%, 0 100%);
+}
+
+/* ── Dot grid (now warm-tinted) ── */
 .dot-grid {
-  background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(circle, rgba(10,22,40,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.dark .dot-grid {
+  background-image: radial-gradient(circle, rgba(201,168,76,0.07) 1px, transparent 1px);
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* ── Alpine Button (thin bordered, uppercase) ── */
+.alpine-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.75rem;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+}
+.alpine-btn:hover { background: currentColor; opacity: 0.88; }
+.alpine-btn-filled {
+  background: var(--foreground);
+  color: var(--background) !important;
+  border-color: var(--foreground);
+}
+.alpine-btn-filled:hover { opacity: 0.84; }
+.alpine-btn-gold {
+  background: #C9A84C;
+  color: #0A1628 !important;
+  border-color: #C9A84C;
+}
+.alpine-btn-gold:hover { background: #B8953E; border-color: #B8953E; }
+
+/* ── Expedition stat ring ── */
+.stat-ring {
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* ── Section label (editorial) ── */
+.section-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* ── Hero title styles ── */
+.hero-display {
+  font-size: clamp(3.5rem, 9vw, 8rem);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background-color: var(--muted-foreground); }
 
-::selection { background: rgba(34, 211, 238, 0.2); color: inherit; }
+::selection { background: rgba(201, 168, 76, 0.25); color: inherit; }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -132,79 +221,80 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  /* FlowTrack brand */
-  --color-cyan: #22D3EE;
-  --color-violet: #A78BFA;
+  /* FlowTrack Alpine brand */
+  --color-gold: #C9A84C;
+  --color-navy: #0A1628;
+  --color-slate: #4A5568;
 }
 
 :root {
-  --radius: 0.875rem;
-  /* Light mode — ultra-clean whitespace-first */
-  --background: #F7F8FA;
-  --foreground: #0D0D0D;
+  --radius: 0.5rem;
+  /* Light mode — soft off-white, deep navy, muted gold */
+  --background: #F5F3EF;
+  --foreground: #0A1628;
   --card: #FFFFFF;
-  --card-foreground: #0D0D0D;
+  --card-foreground: #0A1628;
   --popover: #FFFFFF;
-  --popover-foreground: #0D0D0D;
-  --primary: #06B6D4;
-  --primary-foreground: #FFFFFF;
-  --secondary: #A78BFA;
-  --secondary-foreground: #FFFFFF;
-  --muted: #F1F3F6;
-  --muted-foreground: #8A8FA8;
-  --accent: #EFF9FF;
-  --accent-foreground: #06B6D4;
-  --destructive: #EF4444;
-  --border: #EAECF2;
-  --input: #EAECF2;
-  --ring: #06B6D4;
-  --chart-1: #06B6D4;
-  --chart-2: #A78BFA;
-  --chart-3: #10B981;
-  --chart-4: #F59E0B;
-  --chart-5: #F472B6;
+  --popover-foreground: #0A1628;
+  --primary: #0A1628;
+  --primary-foreground: #F5F3EF;
+  --secondary: #4A5568;
+  --secondary-foreground: #F5F3EF;
+  --muted: #EAE7E0;
+  --muted-foreground: #7A7E8A;
+  --accent: #C9A84C;
+  --accent-foreground: #0A1628;
+  --destructive: #C0392B;
+  --border: #D8D3C8;
+  --input: #D8D3C8;
+  --ring: #C9A84C;
+  --chart-1: #0A1628;
+  --chart-2: #C9A84C;
+  --chart-3: #4A5568;
+  --chart-4: #8B9AB0;
+  --chart-5: #2C3E50;
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #0D0D0D;
-  --sidebar-primary: #06B6D4;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F1F3F6;
-  --sidebar-accent-foreground: #0D0D0D;
-  --sidebar-border: #EAECF2;
-  --sidebar-ring: #06B6D4;
+  --sidebar-foreground: #0A1628;
+  --sidebar-primary: #0A1628;
+  --sidebar-primary-foreground: #F5F3EF;
+  --sidebar-accent: #EAE7E0;
+  --sidebar-accent-foreground: #0A1628;
+  --sidebar-border: #D8D3C8;
+  --sidebar-ring: #C9A84C;
 }
 
 .dark {
-  --background: #0C0E14;
-  --foreground: #F0F2F8;
-  --card: #13161E;
-  --card-foreground: #F0F2F8;
-  --popover: #13161E;
-  --popover-foreground: #F0F2F8;
-  --primary: #22D3EE;
-  --primary-foreground: #0C0E14;
-  --secondary: #A78BFA;
-  --secondary-foreground: #0C0E14;
-  --muted: #1C1F2A;
-  --muted-foreground: #6B7280;
-  --accent: #1A2535;
-  --accent-foreground: #22D3EE;
-  --destructive: #F87171;
-  --border: #1E2130;
-  --input: #1E2130;
-  --ring: #22D3EE;
-  --chart-1: #22D3EE;
-  --chart-2: #A78BFA;
-  --chart-3: #34D399;
-  --chart-4: #FB923C;
-  --chart-5: #F472B6;
-  --sidebar: #0F1117;
-  --sidebar-foreground: #F0F2F8;
-  --sidebar-primary: #22D3EE;
-  --sidebar-primary-foreground: #0C0E14;
-  --sidebar-accent: #1C1F2A;
-  --sidebar-accent-foreground: #F0F2F8;
-  --sidebar-border: #1E2130;
-  --sidebar-ring: #22D3EE;
+  --background: #080E1A;
+  --foreground: #F5F3EF;
+  --card: #0D1829;
+  --card-foreground: #F5F3EF;
+  --popover: #0D1829;
+  --popover-foreground: #F5F3EF;
+  --primary: #C9A84C;
+  --primary-foreground: #080E1A;
+  --secondary: #4A5568;
+  --secondary-foreground: #F5F3EF;
+  --muted: #111D30;
+  --muted-foreground: #8090A8;
+  --accent: #1A2640;
+  --accent-foreground: #C9A84C;
+  --destructive: #E55C5C;
+  --border: #172035;
+  --input: #172035;
+  --ring: #C9A84C;
+  --chart-1: #C9A84C;
+  --chart-2: #8090A8;
+  --chart-3: #4A5568;
+  --chart-4: #5E7A9A;
+  --chart-5: #3D566E;
+  --sidebar: #080E1A;
+  --sidebar-foreground: #F5F3EF;
+  --sidebar-primary: #C9A84C;
+  --sidebar-primary-foreground: #080E1A;
+  --sidebar-accent: #111D30;
+  --sidebar-accent-foreground: #F5F3EF;
+  --sidebar-border: #172035;
+  --sidebar-ring: #C9A84C;
 }
 
 @layer base {

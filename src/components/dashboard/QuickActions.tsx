@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Upload, Zap, MessageSquare, CalendarDays } from 'lucide-react'
+import { Upload, Zap, MessageSquare, CalendarDays, ArrowRight } from 'lucide-react'
 
 const actions = [
   {
@@ -9,50 +9,61 @@ const actions = [
     description: 'Import from CSV',
     Icon: Upload,
     href: '/upload',
-    color: 'text-cyan-500 dark:text-cyan-400',
-    bg: 'bg-cyan-500/10',
   },
   {
     label: 'Live Session',
     description: 'Track reps now',
     Icon: Zap,
     href: '/live',
-    color: 'text-violet-500 dark:text-violet-400',
-    bg: 'bg-violet-500/10',
+    highlight: true,
   },
   {
     label: 'AI Coach',
     description: 'Get advice',
     Icon: MessageSquare,
     href: '/ai-coach',
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bg: 'bg-emerald-500/10',
   },
   {
     label: 'My Plan',
     description: 'View schedule',
     Icon: CalendarDays,
     href: '/plan',
-    color: 'text-orange-500 dark:text-orange-400',
-    bg: 'bg-orange-500/10',
   },
 ]
 
 export function QuickActions() {
   return (
     <div>
-      <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Quick Actions</h2>
-      <div className="grid grid-cols-2 gap-3">
-        {actions.map(({ label, description, Icon, href, color, bg }) => (
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-4 h-[1px] bg-[#C9A84C]/60" />
+        <h2 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Quick Actions</h2>
+      </div>
+      <div className="grid grid-cols-2 gap-px bg-border">
+        {actions.map(({ label, description, Icon, href, highlight }) => (
           <Link key={href} href={href}>
-            <div className="ny-card p-5 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all">
-              <div className={`w-12 h-12 rounded-2xl ${bg} flex items-center justify-center shrink-0`}>
-                <Icon className={`w-6 h-6 ${color}`} />
+            <div className={`group p-5 flex items-center gap-4 cursor-pointer active:scale-[0.98] transition-all duration-200 ${
+              highlight
+                ? 'bg-[#0A1628] dark:bg-[#0D1829] hover:bg-[#C9A84C] [&:hover_.action-icon]:text-[#0A1628] [&:hover_.action-label]:text-[#0A1628] [&:hover_.action-desc]:text-[#0A1628]/60'
+                : 'bg-card hover:bg-muted/40'
+            }`}>
+              <div className={`w-10 h-10 border flex items-center justify-center shrink-0 transition-colors ${
+                highlight ? 'border-white/20 group-hover:border-[#0A1628]/30' : 'border-border group-hover:border-[#C9A84C]/40'
+              }`}>
+                <Icon className={`w-4.5 h-4.5 action-icon transition-colors ${
+                  highlight ? 'text-[#C9A84C] group-hover:text-[#0A1628]' : 'text-muted-foreground group-hover:text-[#C9A84C]'
+                }`} />
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold leading-tight">{label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+              <div className="min-w-0 flex-1">
+                <p className={`text-xs font-bold tracking-[0.08em] uppercase leading-tight action-label transition-colors ${
+                  highlight ? 'text-white group-hover:text-[#0A1628]' : 'text-foreground'
+                }`}>{label}</p>
+                <p className={`text-[10px] mt-0.5 action-desc transition-colors ${
+                  highlight ? 'text-white/50 group-hover:text-[#0A1628]/60' : 'text-muted-foreground'
+                }`}>{description}</p>
               </div>
+              <ArrowRight className={`w-3 h-3 ml-auto opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0 ${
+                highlight ? 'text-[#0A1628]' : 'text-[#C9A84C]'
+              }`} />
             </div>
           </Link>
         ))}

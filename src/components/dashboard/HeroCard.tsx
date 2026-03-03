@@ -2,9 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Zap, ChevronRight, Calendar, Dumbbell } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Zap, ChevronRight, Calendar, Dumbbell, ArrowRight } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Workout } from '@/types'
 import { formatDate, today } from '@/lib/utils'
@@ -15,87 +13,121 @@ interface HeroCardProps {
   userName?: string
 }
 
-const GREETINGS = ['Let\'s flow,', 'Ready to crush it,', 'Time to move,', 'Stay consistent,']
+const GREETINGS = ['Ready to ascend,', 'Stay the course,', 'Summit awaits,', 'Keep climbing,']
 
 export function HeroCard({ workouts, loading, userName }: HeroCardProps) {
-  const hour  = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const hour     = new Date().getHours()
+  const period   = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening'
   const tagline  = GREETINGS[new Date().getDay() % GREETINGS.length]
 
-  const todayWorkouts  = workouts.filter(w => w.date === today())
-  const nextWorkout    = workouts.find(w => w.date >= today() && w.status === 'planned')
-  const inProgress     = workouts.find(w => w.status === 'in-progress')
+  const todayWorkouts = workouts.filter(w => w.date === today())
+  const nextWorkout   = workouts.find(w => w.date >= today() && w.status === 'planned')
+  const inProgress    = workouts.find(w => w.status === 'in-progress')
 
   if (loading) {
-    return <Skeleton className="h-48 w-full rounded-2xl" />
+    return <Skeleton className="h-48 w-full" style={{ borderRadius: 0 }} />
   }
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="ny-card px-6 py-7"
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="relative bg-[#0A1628] dark:bg-[#0D1829] overflow-hidden"
     >
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">{greeting}</p>
-      <h1 className="text-3xl font-black leading-tight mb-1">
-        {tagline}{' '}
-        <span className="gradient-text">{userName ? userName.split('@')[0] : 'athlete'}</span>
-      </h1>
-      <p className="text-sm text-muted-foreground mb-6">
-        {formatDate(today())} &middot;{' '}
-        {todayWorkouts.length > 0
-          ? `${todayWorkouts.filter(w => w.status === 'completed').length} of ${todayWorkouts.length} done today`
-          : 'Nothing planned today'}
-      </p>
+      {/* Decorative mountain silhouette */}
+      <div className="absolute bottom-0 inset-x-0 opacity-[0.07] pointer-events-none">
+        <svg viewBox="0 0 800 120" className="w-full" preserveAspectRatio="none">
+          <path d="M0,120 L150,30 L280,80 L400,10 L520,60 L670,20 L800,50 L800,120 Z" fill="white" />
+        </svg>
+      </div>
 
-      {inProgress ? (
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 flex-1 rounded-2xl bg-primary/10 border border-primary/20 px-4 py-3">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm font-semibold text-primary">In progress: {inProgress.exercise_name}</span>
-          </div>
-          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 rounded-2xl shrink-0" size="sm">
-            <Link href="/live">
+      {/* Gold accent line */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#C9A84C] via-[#E8C870] to-[#C9A84C]/30" />
+
+      <div className="relative z-10 px-6 py-7">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-4 h-[1px] bg-[#C9A84C]" />
+          <span className="text-[#C9A84C] text-[10px] tracking-[0.25em] uppercase font-bold">
+            Good {period}
+          </span>
+        </div>
+
+        <h1
+          className="text-white font-bold leading-tight mb-1 uppercase"
+          style={{ fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontFamily: 'var(--font-display, sans-serif)', letterSpacing: '-0.01em' }}
+        >
+          {tagline}{' '}
+          <span style={{
+            background: 'linear-gradient(135deg, #C9A84C 0%, #E8C870 60%, #A8893C 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>
+            {userName ? userName.split('@')[0] : 'Athlete'}
+          </span>
+        </h1>
+        <p className="text-white/40 text-xs tracking-wide mb-6 font-light">
+          {formatDate(today())} &middot;{' '}
+          {todayWorkouts.length > 0
+            ? `${todayWorkouts.filter(w => w.status === 'completed').length} of ${todayWorkouts.length} sessions complete`
+            : 'No sessions planned today'}
+        </p>
+
+        {/* Status block */}
+        {inProgress ? (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-1 border border-[#C9A84C]/30 bg-[#C9A84C]/10 px-4 py-3">
+              <span className="w-1.5 h-1.5 bg-[#C9A84C] animate-pulse" />
+              <span className="text-[#C9A84C] text-xs font-semibold tracking-wide uppercase">In Progress — {inProgress.exercise_name}</span>
+            </div>
+            <Link
+              href="/live"
+              className="flex items-center gap-2 bg-[#C9A84C] text-[#0A1628] px-4 py-3 text-[10px] tracking-[0.15em] uppercase font-bold hover:bg-[#E8C870] transition-all"
+            >
               <Zap className="w-3.5 h-3.5" />
               Continue
             </Link>
-          </Button>
-        </div>
-      ) : nextWorkout ? (
-        <div className="flex items-center gap-3">
-          <div className="flex-1 rounded-2xl border border-border bg-muted/40 px-4 py-3.5">
-            <div className="flex items-center gap-2 mb-1">
-              <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground font-medium">Next · {formatDate(nextWorkout.date)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Dumbbell className="w-4 h-4 text-primary" />
-              <span className="text-sm font-bold">{nextWorkout.exercise_name}</span>
-              <Badge variant="secondary" className="text-[10px] ml-auto">
-                {nextWorkout.sets}×{nextWorkout.reps} @ {nextWorkout.weight_kg}kg
-              </Badge>
-            </div>
           </div>
-          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 rounded-2xl shrink-0" size="sm">
-            <Link href="/live">
+        ) : nextWorkout ? (
+          <div className="flex items-center gap-3">
+            <div className="flex-1 border border-white/10 bg-white/5 px-4 py-3.5">
+              <div className="flex items-center gap-2 mb-1">
+                <Calendar className="w-3 h-3 text-white/40" />
+                <span className="text-white/40 text-[10px] tracking-wide uppercase font-medium">Next · {formatDate(nextWorkout.date)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Dumbbell className="w-3.5 h-3.5 text-[#C9A84C]" />
+                <span className="text-white text-sm font-semibold">{nextWorkout.exercise_name}</span>
+                <span className="ml-auto text-white/40 text-[10px] font-mono tracking-wider">
+                  {nextWorkout.sets}×{nextWorkout.reps} @ {nextWorkout.weight_kg}kg
+                </span>
+              </div>
+            </div>
+            <Link
+              href="/live"
+              className="flex items-center gap-2 bg-[#C9A84C] text-[#0A1628] px-4 py-3.5 text-[10px] tracking-[0.15em] uppercase font-bold hover:bg-[#E8C870] transition-all shrink-0"
+            >
               <Zap className="w-3.5 h-3.5" />
               Start
             </Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-3">
-          <p className="text-sm text-muted-foreground flex-1">
-            No workouts planned. Upload a CSV to get started!
-          </p>
-          <Button asChild variant="outline" size="sm" className="gap-1.5 rounded-2xl shrink-0">
-            <Link href="/upload">
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <p className="text-white/40 text-xs flex-1 font-light tracking-wide">
+              No sessions planned. Upload a programme to begin your ascent.
+            </p>
+            <Link
+              href="/upload"
+              className="flex items-center gap-1.5 border border-white/20 text-white/70 hover:text-white hover:border-white/50 px-4 py-2.5 text-[10px] tracking-[0.15em] uppercase font-semibold transition-all shrink-0"
+            >
               Upload
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3 h-3" />
             </Link>
-          </Button>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </motion.div>
   )
 }

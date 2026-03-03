@@ -18,7 +18,7 @@ export function BottomNav() {
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border">
-      <div className="flex items-center justify-around px-2 pb-safe">
+      <div className="flex items-center justify-around px-1 pb-safe">
         {items.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           const isLive = label === 'Live'
@@ -26,27 +26,27 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className="flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[64px] pt-2 pb-1 relative"
+              className="flex flex-col items-center justify-center gap-1 min-w-[52px] min-h-[60px] pt-2 pb-1 relative"
             >
-              {/* Active pill indicator */}
+              {/* Active bar — gold top indicator */}
               {active && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] rounded-full bg-primary" />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-[#C9A84C]" />
               )}
               <div className={cn(
-                'relative flex items-center justify-center w-12 h-12 rounded-2xl transition-all duration-200',
-                active ? 'bg-primary/10' : 'bg-transparent',
+                'relative flex items-center justify-center w-10 h-10 transition-all duration-200',
+                active ? 'bg-[#C9A84C]/10' : 'bg-transparent',
               )}>
                 <Icon className={cn(
-                  'w-6 h-6 transition-all duration-200',
-                  active ? 'text-primary stroke-[2.2]' : 'text-muted-foreground stroke-[1.6]',
+                  'w-5 h-5 transition-all duration-200',
+                  active ? 'text-[#C9A84C]' : 'text-muted-foreground stroke-[1.5]',
                 )} />
                 {isLive && (
-                  <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary border-2 border-card" />
+                  <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-[#C9A84C] border-2 border-card" />
                 )}
               </div>
               <span className={cn(
-                'text-[10px] font-semibold tracking-wide transition-colors',
-                active ? 'text-primary' : 'text-muted-foreground',
+                'text-[9px] font-semibold tracking-[0.1em] uppercase transition-colors',
+                active ? 'text-[#C9A84C]' : 'text-muted-foreground',
               )}>
                 {label}
               </span>

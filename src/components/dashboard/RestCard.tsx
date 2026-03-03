@@ -103,13 +103,13 @@ export function RestCard({ workouts }: RestCardProps) {
   }, [workouts])
 
   const palette = {
-    rest:  { bg: 'bg-rose-500/10',    border: 'border-rose-500/20',    text: 'text-rose-500'    },
-    light: { bg: 'bg-amber-500/10',   border: 'border-amber-500/20',   text: 'text-amber-500'   },
-    ready: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-500' },
+    rest:  { border: 'border-rose-500/20',    text: 'text-rose-400'    },
+    light: { border: 'border-[#C9A84C]/30',   text: 'text-[#C9A84C]'   },
+    ready: { border: 'border-[#C9A84C]/20',   text: 'text-[#C9A84C]'   },
   } as const
 
   // Override ready icon when fully charged
-  const { bg, border, text } = palette[analysis.status]
+  const { border, text } = palette[analysis.status]
   const StatusIcon =
     analysis.status === 'ready' && (analysis.daysSinceLast ?? 0) >= 2 ? Battery :
     analysis.status === 'ready' ? Zap :
@@ -120,39 +120,38 @@ export function RestCard({ workouts }: RestCardProps) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`ny-card px-5 py-4 border ${border} ${bg}`}
+      className={`ny-card px-5 py-4 border ${border}`}
     >
       <div className="flex items-start gap-4">
-        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${bg}`}>
-          <StatusIcon className={`w-5 h-5 ${text}`} />
+        <div className="w-9 h-9 border border-border flex items-center justify-center shrink-0">
+          <StatusIcon className={`w-4 h-4 ${text}`} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <p className={`text-sm font-bold ${text}`}>{analysis.headline}</p>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-3 h-[1px] bg-[#C9A84C]/50" />
+            <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${text}`}>{analysis.headline.replace(/[^a-zA-Z0-9\s,]/g, '').trim()}</p>
           </div>
-          <p className="text-xs text-muted-foreground leading-relaxed">{analysis.detail}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed font-light">{analysis.detail}</p>
         </div>
       </div>
 
       {/* Stats row */}
-      <div className="flex gap-4 mt-4 pt-3 border-t border-border/50">
-        <div className="flex-1 text-center">
-          <p className="text-lg font-black">{analysis.streak}</p>
-          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Day streak</p>
+      <div className="flex gap-0 mt-4 pt-3 border-t border-border divide-x divide-border">
+        <div className="flex-1 text-center py-1">
+          <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-display, sans-serif)' }}>{analysis.streak}</p>
+          <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.18em] mt-0.5">Streak</p>
         </div>
-        <div className="w-px bg-border/50" />
-        <div className="flex-1 text-center">
-          <p className="text-lg font-black">
-            {analysis.daysSinceLast === null ? '—' : analysis.daysSinceLast === 0 ? 'Today' : `${analysis.daysSinceLast}d`}
+        <div className="flex-1 text-center py-1">
+          <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-display, sans-serif)' }}>
+            {analysis.daysSinceLast === null ? '—' : analysis.daysSinceLast === 0 ? '0d' : `${analysis.daysSinceLast}d`}
           </p>
-          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Last session</p>
+          <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.18em] mt-0.5">Last Session</p>
         </div>
-        <div className="w-px bg-border/50" />
-        <div className="flex-1 text-center">
-          <p className="text-lg font-black">
+        <div className="flex-1 text-center py-1">
+          <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-display, sans-serif)' }}>
             {analysis.status === 'rest' ? '48h' : analysis.status === 'light' ? '24h' : '0h'}
           </p>
-          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">Rest needed</p>
+          <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-[0.18em] mt-0.5">Rest Needed</p>
         </div>
       </div>
     </motion.div>

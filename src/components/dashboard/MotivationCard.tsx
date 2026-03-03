@@ -45,45 +45,40 @@ function getDailyQuote() {
   return QUOTES[dayOfYear % QUOTES.length]
 }
 
-// Gradient palettes that cycle every few days for visual freshness
-const GRADIENTS = [
+// Gradient palettes kept for potential future use
+const _GRADIENTS = [
   'from-violet-500/20 via-primary/10 to-cyan-500/20',
-  'from-emerald-500/20 via-primary/10 to-blue-500/20',
-  'from-rose-500/20 via-orange-500/10 to-yellow-500/20',
-  'from-cyan-500/20 via-primary/10 to-purple-500/20',
-  'from-amber-500/20 via-primary/10 to-emerald-500/20',
 ]
 
 export function MotivationCard() {
   const quote = useMemo(() => getDailyQuote(), [])
-  const gradient = useMemo(() => {
-    const idx = Math.floor(Date.now() / 86_400_000 / 2) % GRADIENTS.length
-    return GRADIENTS[idx]
-  }, [])
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-      className={`relative rounded-2xl border border-border bg-gradient-to-br ${gradient} p-5 overflow-hidden`}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="relative border border-border bg-card overflow-hidden"
     >
-      {/* Decorative glow blob */}
-      <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+      {/* Gold top bar */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-[#C9A84C]/60 via-[#E8C870]/40 to-transparent" />
 
-      <div className="relative flex items-start gap-3">
-        <div className="shrink-0 mt-0.5 w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
-          <Sparkles className="w-4 h-4 text-primary" />
+      <div className="relative p-5 flex items-start gap-4">
+        <div className="shrink-0 w-7 h-7 border border-[#C9A84C]/30 flex items-center justify-center">
+          <Sparkles className="w-3.5 h-3.5 text-[#C9A84C]" />
         </div>
-        <div className="space-y-1.5">
-          <p className="text-xs font-semibold text-primary uppercase tracking-wider">
-            Daily Motivation
-          </p>
-          <p className="text-sm font-medium leading-relaxed text-foreground">
+        <div className="space-y-2 flex-1">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-[1px] bg-[#C9A84C]/60" />
+            <p className="text-[#C9A84C] text-[9px] font-bold uppercase tracking-[0.25em]">
+              Daily Dispatch
+            </p>
+          </div>
+          <p className="text-sm font-light leading-relaxed text-foreground italic">
             &ldquo;{quote.text}&rdquo;
           </p>
           {quote.author !== 'Unknown' && (
-            <p className="text-xs text-muted-foreground">— {quote.author}</p>
+            <p className="text-[10px] text-muted-foreground tracking-wide font-medium">— {quote.author}</p>
           )}
         </div>
       </div>

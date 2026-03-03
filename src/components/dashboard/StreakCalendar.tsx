@@ -43,13 +43,16 @@ export function StreakCalendar({ workouts }: StreakCalendarProps) {
   const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
   return (
-    <Card className="bg-card border-border card-hover">
+    <Card className="bg-card border-border card-hover rounded-none">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Activity</CardTitle>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-[1px] bg-[#C9A84C]/60" />
+            <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Activity</CardTitle>
+          </div>
           {streak > 0 && (
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-orange-400">
-              <Flame className="w-4 h-4" />
+            <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#C9A84C] tracking-wide">
+              <Flame className="w-3 h-3" />
               {streak} day streak
             </span>
           )}
@@ -72,13 +75,13 @@ export function StreakCalendar({ workouts }: StreakCalendarProps) {
                 <TooltipTrigger asChild>
                   <div
                     className={`
-                      aspect-square rounded-sm cursor-default transition-all duration-150
+                      aspect-square cursor-default transition-all duration-150
                       ${hasWorkout
-                        ? 'bg-primary/80 glow-cyan'
+                        ? 'bg-[#0A1628] dark:bg-[#C9A84C]'
                         : isToday
-                        ? 'bg-muted border border-primary/40'
+                        ? 'bg-muted border border-[#C9A84C]/40'
                         : 'bg-muted/40'}
-                      ${isToday && !hasWorkout ? 'ring-1 ring-primary/30' : ''}
+                      ${isToday && !hasWorkout ? 'ring-1 ring-[#C9A84C]/40' : ''}
                     `}
                   />
                 </TooltipTrigger>

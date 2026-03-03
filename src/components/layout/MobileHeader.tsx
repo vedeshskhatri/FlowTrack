@@ -24,21 +24,31 @@ export function MobileHeader() {
     <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-16 bg-card border-b border-border flex items-center px-5 gap-3">
       {isHome ? (
         <>
-          <span className="text-xl font-black tracking-tight gradient-text">FlowTrack</span>
+          <span
+            className="font-bold tracking-[0.2em] text-[11px] uppercase text-foreground"
+            style={{ fontFamily: 'var(--font-display, sans-serif)' }}
+          >
+            FlowTrack
+          </span>
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle compact />
-            <Link href="/settings" className="flex items-center justify-center w-10 h-10 rounded-2xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
-              <Settings className="w-5 h-5" />
+            <Link href="/settings" className="flex items-center justify-center w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+              <Settings className="w-4 h-4" />
             </Link>
           </div>
         </>
       ) : (
         <>
-          <h1 className="flex-1 text-base font-bold">{title}</h1>
+          <h1
+            className="flex-1 text-[11px] font-semibold tracking-[0.15em] uppercase text-foreground"
+            style={{ fontFamily: 'var(--font-display, sans-serif)' }}
+          >
+            {title}
+          </h1>
           <div className="flex items-center gap-1">
             <ThemeToggle compact />
-            <Link href="/settings" className="flex items-center justify-center w-10 h-10 rounded-2xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
-              <Settings className="w-5 h-5" />
+            <Link href="/settings" className="flex items-center justify-center w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+              <Settings className="w-4 h-4" />
             </Link>
           </div>
         </>
